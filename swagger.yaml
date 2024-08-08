@@ -10,7 +10,7 @@ servers:
 - url: http://localhost:8080
   description: Generated server url
 paths:
-  /api:
+  /api/currencies:
     get:
       tags:
       - currency-controller
@@ -29,6 +29,8 @@ paths:
     put:
       tags:
       - currency-controller
+      summary: 'Update a currency by code '
+      description: "If exist will update, if is not will add "
       operationId: updateCurrencyByCode
       requestBody:
         content:
@@ -46,6 +48,7 @@ paths:
     post:
       tags:
       - currency-controller
+      summary: Add new currency
       operationId: addCurrency
       requestBody:
         content:
@@ -60,10 +63,48 @@ paths:
             '*/*':
               schema:
                 type: string
-  /api/{code}:
+  /api/schedule:
+    post:
+      tags:
+      - schedule-controller
+      summary: Schedule currency rate
+      description: Send json with new rate and datetime to schedule rates
+      operationId: scheduleJob
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduledCurrencyDTO'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+  /api/schedule/jobs:
+    get:
+      tags:
+      - schedule-controller
+      summary: Get scheduled jobs
+      description: Returns list of active jobs
+      operationId: getAllJobs
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  type: string
+  /api/currencies/{code}:
     get:
       tags:
       - currency-controller
+      summary: Get a currency by code
+      description: 'Returns a currency by code '
       operationId: getCurrencyByCode
       parameters:
       - name: code
@@ -94,6 +135,23 @@ components:
           description: 'Currency rate '
           format: double
           example: 90.8
+    ScheduledCurrencyDTO:
+      type: object
+      properties:
+        datetime:
+          type: string
+          description: Trigger time to schedule with time zone
+          format: date-time
+          example: 2024-08-08T19:37:00.259Z
+        data:
+          type: object
+          additionalProperties:
+            type: number
+            description: Array for currencies
+            format: double
+          description: Array for currencies
+          example:
+            USD: "98.2"
     CurrencyAddingRequest:
       type: object
       properties:
