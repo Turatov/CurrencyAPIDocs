@@ -1,159 +1,413 @@
-openapi: 3.0.1
-info:
-  title: Currency rates api
-  description: This  api provides actual currency rates
-  version: v0.0.1
-externalDocs:
-  description: You can find a source code here
-  url: https://github.com/Turatov/CurrencyRates
-servers:
-- url: http://localhost:8080
-  description: Generated server url
-paths:
-  /api/currencies:
-    get:
-      tags:
-      - currency-controller
-      summary: 'Get a list of actual rates for currencies '
-      description: Returns a list of currencies
-      operationId: getAllCurrencies
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Currency'
-    put:
-      tags:
-      - currency-controller
-      summary: 'Update a currency by code '
-      description: "If exist will update, if is not will add "
-      operationId: updateCurrencyByCode
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Currency'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Currency'
-    post:
-      tags:
-      - currency-controller
-      summary: Add new currency
-      operationId: addCurrency
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CurrencyAddingRequest'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                type: string
-  /api/schedule:
-    post:
-      tags:
-      - schedule-controller
-      summary: Schedule currency rate
-      description: Send json with new rate and datetime to schedule rates
-      operationId: scheduleJob
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ScheduledCurrencyDTO'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                type: string
-  /api/schedule/jobs:
-    get:
-      tags:
-      - schedule-controller
-      summary: Get scheduled jobs
-      description: Returns list of active jobs
-      operationId: getAllJobs
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                type: array
-                items:
-                  type: string
-  /api/currencies/{code}:
-    get:
-      tags:
-      - currency-controller
-      summary: Get a currency by code
-      description: 'Returns a currency by code '
-      operationId: getCurrencyByCode
-      parameters:
-      - name: code
-        in: path
-        description: Currency code to be  retrieved
-        required: true
-        schema:
-          type: string
-        example: USD
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/Currency'
-components:
-  schemas:
-    Currency:
-      type: object
-      properties:
-        code:
-          type: string
-          description: Unique identifier of the currency
-          example: USD
-        rate:
-          type: number
-          description: 'Currency rate '
-          format: double
-          example: 90.8
-    ScheduledCurrencyDTO:
-      type: object
-      properties:
-        datetime:
-          type: string
-          description: Trigger time to schedule with time zone
-          format: date-time
-          example: 2024-08-08T19:37:00.259Z
-        data:
-          type: object
-          additionalProperties:
-            type: number
-            description: Array for currencies
-            format: double
-          description: Array for currencies
-          example:
-            USD: "98.2"
-    CurrencyAddingRequest:
-      type: object
-      properties:
-        currency:
-          $ref: '#/components/schemas/Currency'
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Currency rates api",
+    "description": "This  api provides actual currency rates",
+    "version": "v0.0.1"
+  },
+  "externalDocs": {
+    "description": "You can find a source code here",
+    "url": "https://github.com/Turatov/CurrencyRates"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "paths": {
+    "/api/v1/currencies/admin": {
+      "get": {
+        "tags": [
+          "currency-controller"
+        ],
+        "summary": "Get rates from remote api",
+        "description": "First update currency table with rates from remote api and return list of rates",
+        "operationId": "getRatesFromRemoteApi",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Currency"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "currency-controller"
+        ],
+        "summary": "Update a currency by code ",
+        "description": "If exist will update, if is not will add ",
+        "operationId": "updateCurrencyByCode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Currency"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Currency"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "currency-controller"
+        ],
+        "summary": "Add new currency",
+        "operationId": "addCurrency",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CurrencyAddingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/admin": {
+      "post": {
+        "tags": [
+          "schedule-controller"
+        ],
+        "summary": "Schedule currency rate",
+        "description": "Send json with new rate and datetime to schedule rates",
+        "operationId": "scheduleJob",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledCurrencyDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/currencies/admin/upload": {
+      "post": {
+        "tags": [
+          "currency-controller"
+        ],
+        "summary": "Upload currency rates from CVS file",
+        "description": "Import  currency rates from CVS file and return number of imported lines ",
+        "operationId": "uploadCurrencyRatesUsCVS",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth": {
+      "post": {
+        "tags": [
+          "auth-controller"
+        ],
+        "summary": "Creat new user with role",
+        "description": "if in request reference code exist role by default will be ADMIN if not USER , after authentication can change it",
+        "operationId": "creatNewUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/schedule/admin/jobs": {
+      "get": {
+        "tags": [
+          "schedule-controller"
+        ],
+        "summary": "Get scheduled jobs",
+        "description": "Returns list of active jobs",
+        "operationId": "getAllJobs",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/currencies": {
+      "get": {
+        "tags": [
+          "currency-controller"
+        ],
+        "summary": "Get a list of actual rates for currencies ",
+        "description": "Returns a list of currencies",
+        "operationId": "getAllCurrencies",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Currency"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/currencies/{code}": {
+      "get": {
+        "tags": [
+          "currency-controller"
+        ],
+        "summary": "Get a currency by code",
+        "description": "Returns a currency by code ",
+        "operationId": "getCurrencyByCode",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "description": "Currency code to be  retrieved",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "USD"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Currency"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/users/{userName}": {
+      "get": {
+        "tags": [
+          "auth-controller"
+        ],
+        "summary": "Get user role by username",
+        "description": "returns user role and id if exist",
+        "operationId": "getUser",
+        "parameters": [
+          {
+            "name": "userName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Authority"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Currency": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique identifier of the currency",
+            "example": "USD"
+          },
+          "rate": {
+            "minimum": 0,
+            "type": "number",
+            "description": "Currency rate ",
+            "format": "double",
+            "example": 90.8
+          }
+        }
+      },
+      "ScheduledCurrencyDTO": {
+        "type": "object",
+        "properties": {
+          "datetime": {
+            "type": "string",
+            "description": "Trigger time to schedule with time zone",
+            "format": "date-time",
+            "example": "2024-08-08T19:37:00.259Z"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "description": "Array for currencies",
+              "format": "double"
+            },
+            "description": "Array for currencies",
+            "example": {
+              "USD": "98.2"
+            }
+          }
+        }
+      },
+      "CurrencyAddingRequest": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          }
+        }
+      },
+      "UserDTO": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "description": "User authority ('USER' || 'ADMIN' ",
+            "example": "ADMIN"
+          },
+          "referenceCode": {
+            "type": "string",
+            "description": " Code from authenticated user to creat user with 'ADMIN' authority  ",
+            "example": "TOTORO"
+          }
+        }
+      },
+      "Authority": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "authority": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
